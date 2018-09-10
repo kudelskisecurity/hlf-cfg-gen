@@ -3,12 +3,12 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)
 
 This generator allows to easily experiment with different
-configuration of Hyperledger Fabric.
+configurations of Hyperledger Fabric.
 It allows to specifiy the number of organization, peer per organization,
 orderer instances and fabric-cli instances.
 
-It will generate configs files and scripts that can be
-directly used to easily generate a working configuration of
+It will generate config files and scripts that can be
+directly used to easily generate a working setup of
 Hyperledger Fabric on docker with
 
 * one channel per organization
@@ -16,7 +16,7 @@ Hyperledger Fabric on docker with
 
 It also deploys kafka (with zookeeper) for the ordering service.
 
-# Get started
+# Usage
 
 Make sure to have a recent version of the following tools installed:
 
@@ -41,7 +41,7 @@ $ sudo usermod -aG docker $(whoami)
 
 Retrieve HLF bootstrap script.
 This will download all needed docker images as well as the different
-binaries needed by HLF.
+binaries needed by HLF
 ```bash
 # for example getting the HLF bootstrap script for version 1.1
 $ wget https://raw.githubusercontent.com/hyperledger/fabric/release-1.1/scripts/bootstrap.sh
@@ -52,7 +52,7 @@ $ ./bootstrap.sh
 $ rm -rf config
 ```
 
-Make sure the binaries installed by the bootstrap script are in your path.
+Make sure the binaries installed by the bootstrap script are in your path
 ```bash
 $ export PATH="`pwd`/bin/:${PATH}"
 ```
@@ -60,7 +60,7 @@ $ export PATH="`pwd`/bin/:${PATH}"
 Also ensure no firewall rules are blocking the ports used
 by the different components of HLF.
 
-Generate all the configs:
+Generate all the configs
 ```bash
 $ ./hlf-gen.py gen
 $ cd configs
@@ -71,12 +71,12 @@ Generate HLF crypto configs and channels blocks
 $ ./generate.sh
 ```
 
-Then start the different containers:
+Then start the different containers
 ```bash
 $ ./start.sh
 ```
 
-Ensure no container has failed:
+Ensure no container has failed
 ```bash
 $ docker ps --filter status=exited
 ```
@@ -106,7 +106,7 @@ $ ./stop.sh
 # Cleaning
 
 The following commands will clean all containers, volumes and networks
-in docker, use with care.
+in docker, use with care
 ```bash
 $ docker stop `docker ps -a | awk '{if (NR!=1) {print $1}}'`
 $ docker rm `docker ps -a | awk '{if (NR!=1) {print $1}}'`
