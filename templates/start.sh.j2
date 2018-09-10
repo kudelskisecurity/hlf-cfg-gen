@@ -1,0 +1,25 @@
+#!/bin/sh
+# author: Adrien Giner - adrien.giner@kudelskisecurity.com
+#
+# Start the HLF dockers with docker-compose
+#
+# Copyright (c) 2018 Nagravision SA
+#
+
+export COMPOSE_PROJECT_NAME={{ project }}
+sleept=10
+
+docker-compose -p ${COMPOSE_PROJECT_NAME} -f docker-compose.yml down
+docker-compose -p ${COMPOSE_PROJECT_NAME} -f docker-compose.yml up \
+  -d zookeeper0.{{ domain }} zookeeper1.{{ domain }} zookeeper2.{{ domain }}
+echo "sleeping ${sleept}"
+sleep ${sleept}
+
+docker-compose -p ${COMPOSE_PROJECT_NAME} -f docker-compose.yml up \
+  -d kafka0.{{ domain }} kafka1.{{ domain }} kafka2.{{ domain }} kafka3.{{ domain }}
+echo "sleeping ${sleept}"
+sleep ${sleept}
+
+docker-compose -p ${COMPOSE_PROJECT_NAME} -f docker-compose.yml up -d
+echo "sleeping ${sleept}"
+sleep ${sleept}

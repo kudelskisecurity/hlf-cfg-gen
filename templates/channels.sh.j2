@@ -1,0 +1,66 @@
+#!/bin/sh
+# author: Adrien Giner - adrien.giner@kudelskisecurity.com
+#
+# only the first peer is able to issue the create channel command.
+# Any subsequent use of this command will result in an error.
+# Fetch is therefore used to retrieve the genesis block.
+#
+# Copyright (c) 2018 Nagravision SA
+#
+
+set -ev
+#set -v
+
+domain="{{ domain }}"
+timeout="10"
+# genesis block
+genesis="config/genesis.block"
+# orderer
+ord="orderer{{ ords[0].id }}.${domain}:{{ ords[0].port }}"
+
+{% for org in orgs %}
+###########################################################
+# org{{ org.id }} channel
+###########################################################
+channel="org{{ org.id }}chan"
+mspid="CORE_PEER_LOCALMSPID=Org{{ org.id }}MSP"
+mspcfg="CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/msp/users/Admin@org{{ org.id }}.${domain}/msp"
+
+{% for peer in org.peers %}
+peer="peer{{ peer.id }}.org{{ org.id }}.${domain}"
+{% if loop.index == 1 %}
+# create
+docker exec -e ${mspid} -e ${mspcfg} ${peer} peer channel create -o ${ord} -c ${channel} -f /etc/hyperledger/configtx/${channel}.tx -t ${timeout}
+{% else %}
+# fetch
+docker exec -e ${mspid} -e ${mspcfg} ${peer} peer channel fetch newest -o ${ord} -c ${channel} "${channel}.block"
+{% endif %}
+# join
+docker exec -e ${mspid} -e ${mspcfg} ${peer} peer channel join -b ${channel}.block
+{% endfor %}
+
+{% endfor %}
+
+###########################################################
+# common channel
+###########################################################
+channel="commonchannel"
+
+{% for org in orgs %}
+{% set outer_loop = loop %}
+mspid="CORE_PEER_LOCALMSPID=Org{{ org.id }}MSP"
+mspcfg="CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/msp/users/Admin@org{{ org.id }}.${domain}/msp"
+{% for peer in org.peers %}
+peer="peer{{ peer.id }}.org{{ org.id }}.${domain}"
+{% if outer_loop.index == 1 and loop.index == 1 %}
+# create
+docker exec -e ${mspid} -e ${mspcfg} ${peer} peer channel create -o ${ord} -c ${channel} -f /etc/hyperledger/configtx/${channel}.tx -t ${timeout}
+{% else %}
+# fetch
+docker exec -e ${mspid} -e ${mspcfg} ${peer} peer channel fetch newest -o ${ord} -c ${channel} "${channel}.block"
+{% endif %}
+# join
+docker exec -e ${mspid} -e ${mspcfg} ${peer} peer channel join -b ${channel}.block
+
+{% endfor %}
+{% endfor %}

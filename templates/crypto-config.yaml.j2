@@ -1,0 +1,18 @@
+OrdererOrgs:
+  - Name: Orderer
+    Domain: {{ domain }}
+    Specs:
+{% for ord in ords %}
+      - Hostname: orderer{{ ord.id }}
+{% endfor %}
+
+PeerOrgs:
+{% for org in orgs %}
+  - Name: Org{{ org.id }}
+    Domain: org{{ org.id }}.{{ domain }}
+    Template:
+      Count: {{ org.peers|length }}
+    Users:
+      Count: {{ org.nbuser }}
+
+{% endfor %}

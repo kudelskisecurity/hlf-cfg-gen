@@ -1,0 +1,10 @@
+#!/bin/sh
+# author: Adrien Giner - adrien.giner@kudelskisecurity.com
+#
+# Stop the HLF dockers with docker-compose
+#
+# Copyright (c) 2018 Nagravision SA
+#
+
+export COMPOSE_PROJECT_NAME={{ project }}
+docker-compose -p ${COMPOSE_PROJECT_NAME} -f docker-compose.yml down

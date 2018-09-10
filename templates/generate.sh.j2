@@ -1,0 +1,54 @@
+#!/bin/sh
+# author: Adrien Giner - adrien.giner@kudelskisecurity.com
+#
+# generate the different configs for HLF
+#
+# Copyright (c) 2018 Nagravision SA
+#
+
+set -ev
+
+# remove previous crypto material and config transactions
+dirs="config crypto-config"
+rm -rf ${dirs}
+mkdir -p ${dirs}
+
+# generate crypto material
+cryptogen generate --config=./crypto-config.yaml
+[ "$?" != "0" ] && echo "[ERROR] generate crypto" && exit 1
+
+# generate genesis block for orderer
+configtxgen -profile OrdererGenesis -outputBlock ./config/genesis.block
+[ "$?" != "0" ] && echo "[ERROR] generate genesis block" && exit 1
+
+{% for org in orgs %}
+####################################################################
+# org{{ org.id }} channel
+####################################################################
+CHANNEL_NAME="org{{ org.id }}chan"
+
+# generate channel configuration transaction
+configtxgen -profile Org{{ org.id }}Channel -outputCreateChannelTx ./config/${CHANNEL_NAME}.tx -channelID $CHANNEL_NAME
+[ "$?" != "0" ] && echo "[ERROR] generate channel config trans" && exit 1
+
+# generate anchor peer transaction
+configtxgen -profile Org{{ org.id }}Channel -outputAnchorPeersUpdate ./config/Org{{ org.id }}MSPanchors.tx -channelID $CHANNEL_NAME -asOrg Org{{ org.id }}MSP
+[ "$?" != "0" ] && echo "[ERROR] generate anchor peer trans" && exit 1
+
+{% endfor %}
+####################################################################
+# common channel
+####################################################################
+CHANNEL_NAME="commonchannel"
+
+# generate channel configuration transaction
+configtxgen -profile CommonChannel -outputCreateChannelTx ./config/${CHANNEL_NAME}.tx -channelID $CHANNEL_NAME
+[ "$?" != "0" ] && echo "[ERROR] generate channel config trans" && exit 1
+
+{% for org in orgs %}
+# generate anchor peer transaction
+configtxgen -profile CommonChannel -outputAnchorPeersUpdate ./config/Org{{ org.id }}MSPanchors.tx -channelID $CHANNEL_NAME -asOrg Org{{ org.id }}MSP
+[ "$?" != "0" ] && echo "[ERROR] generate anchor peer trans" && exit 1
+{% endfor %}
+
+exit 0

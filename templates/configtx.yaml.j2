@@ -1,0 +1,76 @@
+Profiles:
+
+    OrdererGenesis:
+        Orderer:
+            <<: *OrdererDefaults
+            OrdererType: kafka
+            Organizations:
+                - *OrdererOrg
+        Consortiums:
+            SampleConsortium:
+                Organizations:
+{% for org in orgs %}
+                    - *Org{{ org.id }}
+{% endfor %}
+
+{% for org in orgs %}
+    Org{{ org.id }}Channel:
+        Consortium: SampleConsortium
+        Application:
+            <<: *ApplicationDefaults
+            Organizations:
+                - *Org{{ org.id }}
+
+{% endfor %}
+    CommonChannel:
+        Consortium: SampleConsortium
+        Application:
+            <<: *ApplicationDefaults
+            Organizations:
+{% for org in orgs %}
+                - *Org{{ org.id }}
+{% endfor %}
+
+Organizations:
+
+    - &OrdererOrg
+        Name: OrdererOrg
+        ID: OrdererMSP
+        MSPDir: crypto-config/ordererOrganizations/{{ domain }}/msp
+
+{% for org in orgs %}
+    - &Org{{ org.id }}
+        Name: Org{{ org.id }}MSP
+        ID: Org{{ org.id }}MSP
+        MSPDir: crypto-config/peerOrganizations/org{{ org.id }}.{{ domain }}/msp
+        AnchorPeers:
+    {% for peer in org.peers %}
+            - Host: peer{{ peer.id }}.org{{ org.id }}.{{ domain }}
+              Port: {{ peer.port }}
+    {% endfor %}
+
+{% endfor %}
+Orderer: &OrdererDefaults
+    #OrdererType: solo
+    OrdererType: kafka
+
+    Addresses:
+{% for ord in ords %}
+        - orderer{{ ord.id }}.{{ domain }}:{{ ord.port }}
+{% endfor %}
+
+    BatchTimeout: 2s
+    BatchSize:
+        MaxMessageCount: 10
+        AbsoluteMaxBytes: 99 MB
+        PreferredMaxBytes: 512 KB
+    Kafka:
+        Brokers:
+            - kafka0.{{ domain }}:9092
+            - kafka1.{{ domain }}:9092
+            - kafka2.{{ domain }}:9092
+            - kafka3.{{ domain }}:9092
+    Organizations:
+
+Application: &ApplicationDefaults
+    Organizations:
