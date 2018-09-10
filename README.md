@@ -1,3 +1,7 @@
+# HLF config generator
+
+[![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)
+
 This generator allows to easily experiment with different
 configuration of Hyperledger Fabric.
 It allows to specifiy the number of organization, peer per organization,
